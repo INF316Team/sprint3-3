@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer {{ contact.full_name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card border-danger border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 text-center">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-1 mb-3 d-block"></i>
+        <h5 class="fw-bold">Confirmer la suppression</h5>
+        <p class="text-muted">Voulez-vous vraiment supprimer le contact <strong>{{ contact.full_name }}</strong> ?<br>
+        <small>Cette action peut être annulée par l'administrateur.</small></p>
+        <div class="d-flex gap-2 justify-content-center mt-3">
+          <a href="{% url 'contacts:detail' contact.pk %}" class="btn btn-outline-secondary">Annuler</a>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash me-1"></i>Oui, supprimer
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

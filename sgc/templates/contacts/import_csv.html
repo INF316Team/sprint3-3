@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Importer des contacts — SGC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <a href="{% url 'contacts:list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h4 class="fw-bold mb-0">
+        <i class="bi bi-upload me-2 text-primary"></i>Importer des contacts CSV
+      </h4>
+    </div>
+
+    <!-- INSTRUCTIONS -->
+    <div class="alert alert-info rounded-4 mb-4">
+      <h6 class="fw-bold"><i class="bi bi-info-circle me-2"></i>Format attendu</h6>
+      <code>prenom ; nom ; email ; telephone ; entreprise ; adresse ; notes</code>
+      <ul class="mb-0 mt-2 small">
+        <li>Séparateur : <strong>; ou ,</strong></li>
+        <li>Encodage : <strong>UTF-8 ou Windows-1252</strong></li>
+        <li>Taille max : <strong>5 MB</strong></li>
+        <li>Doublons (même email) : <strong>ignorés automatiquement</strong></li>
+      </ul>
+    </div>
+
+    <!-- DOUBLONS SESSION -->
+    {% if request.session.doublons_import %}
+    <div class="alert alert-warning rounded-4 mb-4">
+      <h6 class="fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Doublons ignorés</h6>
+      <table class="table table-sm mb-0">
+        <thead><tr><th>Ligne</th><th>Nom</th><th>Email</th></tr></thead>
+        <tbody>
+          {% for d in request.session.doublons_import %}
+          <tr><td>{{ d.ligne }}</td><td>{{ d.nom }}</td><td>{{ d.email }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- FORMULAIRE -->
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Sélectionner votre fichier CSV</label>
+            {{ form.fichier_csv }}
+            <div class="form-text">{{ form.fichier_csv.help_text }}</div>
+          </div>
+
+          <!-- APERÇU FICHIER -->
+          <div id="apercu" class="alert alert-secondary d-none mb-4">
+            <i class="bi bi-file-check me-2"></i>
+            <strong id="nom-fichier"></strong> — <span id="taille-fichier"></span>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end">
+            <a href="{% url 'contacts:list' %}" class="btn btn-outline-secondary">Annuler</a>
+            <button type="submit" class="btn btn-primary px-4" id="btn-import">
+              <i class="bi bi-upload me-2"></i>Lancer l'import
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- EXEMPLE CSV -->
+    <div class="card border-0 shadow-sm rounded-4 mt-4">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-code me-2 text-success"></i>Exemple</h6>
+        <pre class="bg-light rounded p-3 small">prenom;nom;email;telephone;entreprise
+Jean;Dupont;jean@acme.com;+237 690000000;ACME Corp
+Marie;Martin;marie@example.com;+33 6 12 34 56 78;Example SA
+Alice;Kamga;;+237 699000001;</pre>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelector('#id_fichier_csv').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const apercu = document.getElementById('apercu');
+  document.getElementById('nom-fichier').textContent = file.name;
+  const kb = (file.size / 1024).toFixed(1);
+  document.getElementById('taille-fichier').textContent = kb + ' KB';
+  apercu.classList.remove('d-none');
+});
+
+document.querySelector('form').addEventListener('submit', function() {
+  const btn = document.getElementById('btn-import');
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Import en cours...';
+  btn.disabled = true;
+});
+</script>
+{% endblock %}

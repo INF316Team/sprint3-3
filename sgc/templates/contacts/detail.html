@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}{{ contact.full_name }} — SGC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+
+    <!-- EN-TÊTE -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+      <div class="p-4" style="background: linear-gradient(135deg, #4F46E5, #7C3AED);">
+        <div class="d-flex align-items-center gap-4">
+          {% if contact.photo %}
+          <img src="{{ contact.photo.url }}" alt="{{ contact.full_name }}"
+               class="rounded-circle border border-white border-3"
+               style="width:80px;height:80px;object-fit:cover;">
+          {% else %}
+          <div class="avatar-initials" style="width:80px;height:80px;font-size:1.8rem;background:rgba(255,255,255,0.2);color:white;">
+            {{ contact.initials }}
+          </div>
+          {% endif %}
+
+          <div class="text-white">
+            <h3 class="fw-bold mb-0">{{ contact.full_name }}</h3>
+            {% if contact.company %}
+            <div class="opacity-75"><i class="bi bi-building me-1"></i>{{ contact.company }}</div>
+            {% endif %}
+            <div class="mt-2 d-flex gap-2 flex-wrap">
+              {% for group in contact.groups.all %}
+              <span class="badge text-white rounded-pill" style="background:{{ group.color }};">
+                {{ group.name }}
+              </span>
+              {% endfor %}
+              {% if contact.is_favorite %}
+              <span class="badge bg-warning text-dark rounded-pill">
+                <i class="bi bi-star-fill me-1"></i>Favori
+              </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COORDONNÉES -->
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-4">
+        <h6 class="fw-bold text-muted text-uppercase small mb-3">Coordonnées</h6>
+        {% if contact.email %}
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="bg-primary bg-opacity-10 rounded-circle p-2" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-envelope text-primary"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Email</div>
+            <a href="mailto:{{ contact.email }}" class="text-dark fw-semibold">{{ contact.email }}</a>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if contact.phone %}
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="bg-success bg-opacity-10 rounded-circle p-2" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-telephone text-success"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Téléphone</div>
+            <a href="tel:{{ contact.phone }}" class="text-dark fw-semibold">{{ contact.phone }}</a>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if contact.address %}
+        <div class="d-flex align-items-start gap-3">
+          <div class="bg-warning bg-opacity-10 rounded-circle p-2" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-geo-alt text-warning"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Adresse</div>
+            <div class="fw-semibold">{{ contact.address }}</div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if not contact.email and not contact.phone and not contact.address %}
+        <p class="text-muted text-center py-2">Aucune coordonnée renseignée</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    {% if contact.notes %}
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-4">
+        <h6 class="fw-bold text-muted text-uppercase small mb-3">Notes</h6>
+        <p class="mb-0" style="white-space: pre-line;">{{ contact.notes }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- MÉTADONNÉES -->
+    <div class="text-muted small text-end mb-4">
+      Créé le {{ contact.created_at|date:"d/m/Y" }}
+      &nbsp;·&nbsp; Modifié le {{ contact.updated_at|date:"d/m/Y" }}
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="d-flex gap-2">
+      <a href="{% url 'contacts:list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+      </a>
+      <a href="{% url 'contacts:update' contact.pk %}" class="btn btn-primary flex-grow-1">
+        <i class="bi bi-pencil me-1"></i>Modifier
+      </a>
+      <a href="{% url 'contacts:delete' contact.pk %}" class="btn btn-outline-danger">
+        <i class="bi bi-trash me-1"></i>Supprimer
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Groupes — SGC{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-tag me-2 text-primary"></i>Groupes</h4>
+  <a href="{% url 'contacts:group_create' %}" class="btn btn-primary">
+    <i class="bi bi-plus me-1"></i>Nouveau groupe
+  </a>
+</div>
+
+{% if groups %}
+<div class="row g-3">
+  {% for group in groups %}
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm rounded-4 p-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle" style="width:40px;height:40px;background:{{ group.color }};"></div>
+        <div class="flex-grow-1">
+          <div class="fw-semibold">{{ group.name }}</div>
+          <div class="text-muted small">{{ group.count }} contact{{ group.count|pluralize }}</div>
+        </div>
+        <div class="d-flex gap-1">
+          <a href="{% url 'contacts:group_update' group.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <a href="{% url 'contacts:group_delete' group.pk %}" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-trash"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+  <i class="bi bi-tag fs-1 d-block mb-2"></i>
+  Aucun groupe créé.
+  <a href="{% url 'contacts:group_create' %}" class="btn btn-sm btn-primary mt-3 d-block mx-auto" style="width:fit-content;">Créer votre premier groupe</a>
+</div>
+{% endif %}
+{% endblock %}

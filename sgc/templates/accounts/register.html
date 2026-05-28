@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Inscription — SGC{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <i class="bi bi-person-plus-fill fs-1 text-primary"></i>
+          <h4 class="fw-bold mt-2">Créer un compte</h4>
+        </div>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          <div class="row">
+            <div class="col-6 mb-3">
+              <label class="form-label fw-semibold">{{ form.first_name.label }}</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+                <div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label fw-semibold">{{ form.last_name.label }}</label>
+              {{ form.last_name }}
+            </div>
+          </div>
+          {% for field in form %}
+            {% if field.name not in 'first_name,last_name' %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">{{ field.label }}</label>
+              {{ field }}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors.0 }}</div>{% endif %}
+              {% if field.help_text %}
+                <div class="form-text text-muted">{{ field.help_text }}</div>{% endif %}
+            </div>
+            {% endif %}
+          {% endfor %}
+
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+            <i class="bi bi-check-circle me-2"></i>Créer mon compte
+          </button>
+        </form>
+
+        <p class="text-center mt-3 text-muted small">
+          Déjà inscrit ?
+          <a href="{% url 'accounts:login' %}" class="text-primary fw-semibold">Se connecter</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SGC — Contacts{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --sgc-primary: #4F46E5;
+      --sgc-primary-dark: #3730A3;
+      --sgc-light: #F5F3FF;
+    }
+
+    body { background: #F8FAFC; min-height: 100vh; }
+
+    /* Navbar */
+    .navbar { background: var(--sgc-primary) !important; }
+    .navbar-brand { font-weight: 700; font-size: 1.3rem; }
+
+    /* Sidebar (desktop) */
+    .sidebar {
+      width: 240px;
+      min-height: calc(100vh - 56px);
+      background: white;
+      border-right: 1px solid #E2E8F0;
+      padding-top: 1rem;
+    }
+    .sidebar .nav-link {
+      color: #475569;
+      border-radius: 8px;
+      margin: 2px 8px;
+      padding: 8px 14px;
+    }
+    .sidebar .nav-link:hover,
+    .sidebar .nav-link.active {
+      background: var(--sgc-light);
+      color: var(--sgc-primary);
+      font-weight: 500;
+    }
+
+    /* Cartes contact */
+    .contact-card {
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      transition: box-shadow 0.2s, transform 0.1s;
+      background: white;
+    }
+    .contact-card:hover {
+      box-shadow: 0 4px 20px rgba(79,70,229,0.12);
+      transform: translateY(-2px);
+    }
+
+    /* Avatar initiales */
+    .avatar-initials {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1.1rem;
+      background: var(--sgc-light);
+      color: var(--sgc-primary);
+    }
+
+    /* Alphabet bar */
+    .alphabet-bar .btn {
+      padding: 2px 7px;
+      font-size: 0.78rem;
+      border-radius: 6px;
+    }
+
+    /* Stats card */
+    .stat-card { border-radius: 12px; border: none; }
+
+    /* Bouton favori */
+    .btn-star { border: none; background: none; cursor: pointer; font-size: 1.2rem; }
+    .btn-star .bi-star-fill { color: #F59E0B; }
+    .btn-star .bi-star { color: #CBD5E1; }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid px-3">
+    <a class="navbar-brand text-white" href="{% url 'contacts:list' %}">
+      <i class="bi bi-person-lines-fill me-2"></i>PulseContact
+    </a>
+
+    {% if user.is_authenticated %}
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <a href="{% url 'contacts:export_csv' %}" class="btn btn-sm btn-outline-light">
+        <i class="bi bi-download me-1"></i>Export CSV
+      </a>
+      <!-- <li class="nav-item"> -->
+          <!-- <a href="{% url 'contacts:import_csv' %}"
+            class="nav-link {% if request.resolver_match.url_name == 'import_csv' %}active{% endif %}">
+          <i class="bi bi-upload me-2"></i>Importer CSV
+          </a> -->
+      <!-- </li> -->
+
+      <div class="dropdown">
+        <button class="btn btn-sm btn-light dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="bi bi-person-circle me-1"></i>
+          {{ user.get_full_name|default:user.username }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="{% url 'contacts:dashboard' %}">
+            <i class="bi bi-grid me-2"></i>Tableau de bord</a></li>
+          <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">
+            <i class="bi bi-person me-2"></i>Mon profil</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form method="post" action="{% url 'accounts:logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item text-danger">
+                <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+              </button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+
+<!-- LAYOUT PRINCIPAL -->
+<div class="d-flex">
+
+  {% if user.is_authenticated %}
+  <!-- SIDEBAR -->
+  <nav class="sidebar d-none d-lg-block flex-shrink-0">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a href="{% url 'contacts:dashboard' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          <i class="bi bi-grid-1x2 me-2"></i>Tableau de bord
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'contacts:list' %}"
+           class="nav-link {% if request.resolver_match.url_name == 'list' %}active{% endif %}">
+          <i class="bi bi-people me-2"></i>Tous les contacts
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'contacts:list' %}?favorites_only=true"
+           class="nav-link">
+          <i class="bi bi-star me-2"></i>Favoris
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="{% url 'contacts:groups' %}"
+           class="nav-link {% if 'group' in request.resolver_match.url_name %}active{% endif %}">
+          <i class="bi bi-tag me-2"></i>Groupes
+        </a>
+      </li>
+      <li class="nav-item mt-3">
+        <a href="{% url 'contacts:create' %}" class="nav-link text-success fw-semibold">
+          <i class="bi bi-person-plus me-2"></i>Nouveau contact
+        </a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+
+  <!-- CONTENU PRINCIPAL -->
+  <main class="flex-grow-1 p-4">
+    <!-- Messages flash -->
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js pour le dashboard -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

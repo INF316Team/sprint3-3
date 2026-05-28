@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer le groupe{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 text-center">
+        <i class="bi bi-exclamation-triangle-fill text-danger fs-1 mb-3 d-block"></i>
+        <h5 class="fw-bold">Supprimer le groupe "{{ group.name }}" ?</h5>
+        <p class="text-muted">Les contacts de ce groupe ne seront pas supprimés,<br>seulement retirés du groupe.</p>
+        <div class="d-flex gap-2 justify-content-center mt-3">
+          <a href="{% url 'contacts:groups' %}" class="btn btn-outline-secondary">Annuler</a>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

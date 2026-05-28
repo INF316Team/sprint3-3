@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Contacts — SGC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-people me-2 text-primary"></i>
+    Contacts
+    <span class="badge bg-primary ms-2">{{ total }}</span>
+  </h4>
+  <a href="{% url 'contacts:create' %}" class="btn btn-primary">
+    <i class="bi bi-person-plus me-1"></i>Nouveau
+  </a>
+</div>
+
+<!-- BARRE DE RECHERCHE -->
+<div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-md-5">
+      {{ form.q }}
+    </div>
+    <div class="col-md-3">
+      {{ form.group }}
+    </div>
+    <div class="col-md-2 d-flex align-items-center gap-2">
+      {{ form.favorites_only }}
+      <label class="form-check-label small">Favoris seulement</label>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-search me-1"></i>Filtrer
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- BARRE ALPHABÉTIQUE -->
+<div class="alphabet-bar d-flex flex-wrap gap-1 mb-3">
+  <a href="{% url 'contacts:list' %}" class="btn btn-sm {% if not letter %}btn-primary{% else %}btn-outline-secondary{% endif %}">Tous</a>
+  {% for l in alphabet %}
+  <a href="?letter={{ l }}" class="btn btn-sm {% if letter == l %}btn-primary{% else %}btn-outline-secondary{% endif %}">{{ l }}</a>
+  {% endfor %}
+</div>
+
+<!-- LISTE DES CONTACTS -->
+{% if page_obj.object_list %}
+<div class="row g-3">
+  {% for contact in page_obj %}
+  <div class="col-md-6 col-xl-4">
+    <div class="contact-card p-3 h-100">
+      <div class="d-flex align-items-start gap-3">
+        <!-- Avatar -->
+        {% if contact.photo %}
+        <img src="{{ contact.photo.url }}" alt="{{ contact.full_name }}"
+             class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
+        {% else %}
+        <div class="avatar-initials">{{ contact.initials }}</div>
+        {% endif %}
+
+        <!-- Infos -->
+        <div class="flex-grow-1 min-width-0">
+          <div class="d-flex justify-content-between align-items-start">
+            <a href="{% url 'contacts:detail' contact.pk %}" class="text-decoration-none">
+              <div class="fw-semibold text-dark">{{ contact.full_name }}</div>
+            </a>
+            <!-- Toggle favori -->
+            <button class="btn-star" data-pk="{{ contact.pk }}" title="Favori">
+              <i class="bi {% if contact.is_favorite %}bi-star-fill{% else %}bi-star{% endif %}"></i>
+            </button>
+          </div>
+          {% if contact.company %}
+          <div class="text-muted small">{{ contact.company }}</div>
+          {% endif %}
+          {% if contact.email %}
+          <div class="small"><i class="bi bi-envelope me-1 text-muted"></i>{{ contact.email }}</div>
+          {% endif %}
+          {% if contact.phone %}
+          <div class="small"><i class="bi bi-telephone me-1 text-muted"></i>{{ contact.phone }}</div>
+          {% endif %}
+          <!-- Groupes -->
+          {% for group in contact.groups.all %}
+          <span class="badge rounded-pill mt-1" style="background:{{ group.color }}20; color:{{ group.color }}; font-size:0.7rem;">
+            {{ group.name }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-2 mt-2 pt-2 border-top">
+        <a href="{% url 'contacts:detail' contact.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
+          <i class="bi bi-eye me-1"></i>Voir
+        </a>
+        <a href="{% url 'contacts:update' contact.pk %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-pencil"></i>
+        </a>
+        <a href="{% url 'contacts:delete' contact.pk %}" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-trash"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- PAGINATION -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+  <ul class="pagination justify-content-center">
+    {% if page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+    </li>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+      <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+    </li>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<!-- ÉTAT VIDE -->
+<div class="text-center py-5">
+  <i class="bi bi-person-x fs-1 text-muted d-block mb-3"></i>
+  <h5 class="text-muted">Aucun contact trouvé</h5>
+  <p class="text-muted small">Essayez de modifier vos filtres ou créez un nouveau contact.</p>
+  <a href="{% url 'contacts:create' %}" class="btn btn-primary mt-2">
+    <i class="bi bi-person-plus me-1"></i>Créer un contact
+  </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ── Toggle favori sans rechargement de page ──────────────────────────────
+document.querySelectorAll('.btn-star').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const pk   = this.dataset.pk;
+    const icon = this.querySelector('i');
+
+    fetch(`/contacts/${pk}/favorite/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json',
+      }
+    })
+    .then(r => r.json())
+    .then(data => {
+      icon.className = data.is_favorite ? 'bi bi-star-fill' : 'bi bi-star';
+    });
+  });
+});
+</script>
+{% endblock %}

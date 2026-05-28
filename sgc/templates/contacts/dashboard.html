@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord — SGC{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-grid-1x2 me-2 text-primary"></i>Tableau de bord
+  </h4>
+  <a href="{% url 'contacts:create' %}" class="btn btn-primary">
+    <i class="bi bi-person-plus me-1"></i>Nouveau contact
+  </a>
+</div>
+
+<!-- STATISTIQUES -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card bg-primary text-white p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-people fs-2"></i>
+        <div>
+          <div class="fs-2 fw-bold">{{ total }}</div>
+          <div class="small opacity-75">Contacts total</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card bg-warning text-white p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-star-fill fs-2"></i>
+        <div>
+          <div class="fs-2 fw-bold">{{ favorites }}</div>
+          <div class="small opacity-75">Favoris</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card bg-success text-white p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-envelope fs-2"></i>
+        <div>
+          <div class="fs-2 fw-bold">{{ with_email }}</div>
+          <div class="small opacity-75">Avec email</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card bg-info text-white p-3 h-100">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-telephone fs-2"></i>
+        <div>
+          <div class="fs-2 fw-bold">{{ with_phone }}</div>
+          <div class="small opacity-75">Avec téléphone</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- GRAPHIQUE GROUPES -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+      <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-2 text-primary"></i>Répartition par groupe</h6>
+      {% if groups %}
+      <canvas id="groupChart" height="250"></canvas>
+      {% else %}
+      <div class="text-center text-muted py-4">
+        <i class="bi bi-tag fs-1 d-block mb-2"></i>Aucun groupe créé
+        <a href="{% url 'contacts:group_create' %}" class="btn btn-sm btn-outline-primary mt-2">Créer un groupe</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- DERNIERS CONTACTS -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 p-4 h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Contacts récents</h6>
+        <a href="{% url 'contacts:list' %}" class="btn btn-sm btn-outline-primary">Voir tous</a>
+      </div>
+      {% for contact in recent %}
+      <a href="{% url 'contacts:detail' contact.pk %}" class="text-decoration-none">
+        <div class="d-flex align-items-center gap-3 p-2 rounded-3 mb-1" style="background:#F8FAFC;">
+          <div class="avatar-initials" style="background:{% if contact.groups.first %}{{ contact.groups.first.color }}20{% else %}#EDE9FE{% endif %}; color:{% if contact.groups.first %}{{ contact.groups.first.color }}{% else %}#4F46E5{% endif %};">
+            {{ contact.initials }}
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-semibold text-dark small">{{ contact.full_name }}</div>
+            <div class="text-muted" style="font-size:0.75rem;">{{ contact.email|default:contact.phone|default:"—" }}</div>
+          </div>
+          {% if contact.is_favorite %}
+          <i class="bi bi-star-fill text-warning"></i>
+          {% endif %}
+        </div>
+      </a>
+      {% empty %}
+      <div class="text-center text-muted py-4">
+        <i class="bi bi-person-plus fs-1 d-block mb-2"></i>
+        <a href="{% url 'contacts:create' %}" class="btn btn-sm btn-primary">Ajouter votre premier contact</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if groups %}
+<script>
+const ctx = document.getElementById('groupChart');
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: {{ chart_labels|safe }},
+    datasets: [{
+      data: {{ chart_data|safe }},
+      backgroundColor: {{ chart_colors|safe }},
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+    }
+  }
+});
+</script>
+{% endif %}
+{% endblock %}
